@@ -1,15 +1,10 @@
 /*
 ASSIGNMENT 3 -: K- MEANS CLUSTERING 
 
-B V S Sai Kiran: - 2020H1230233P
-
-Gautam Vikhe: - 2020H1400169P
 
 Raghava Agrawal: - 2020H1230241P
 
-Gayatri Deshpande: - 2020H1400170P
 
-Shivika Gupta:- 2020H1230256P
 
 */
 
