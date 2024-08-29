@@ -1,0 +1,783 @@
+/*
+ASSIGNMENT 3 -: K- MEANS CLUSTERING 
+
+B V S Sai Kiran: - 2020H1230233P
+
+Gautam Vikhe: - 2020H1400169P
+
+Raghava Agrawal: - 2020H1230241P
+
+Gayatri Deshpande: - 2020H1400170P
+
+Shivika Gupta:- 2020H1230256P
+
+*/
+
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+/********************************************************MAIN TOP  MODULE****************************************************************/
+module top_kmeans(clock ,compready,
+count1,count2,count3,count4,count5);
+input clock;
+output compready;
+output [16:0] count1,count2,count3,count4,count5;
+wire [9:0] incr;
+datapath DU(clock,start,ld,clr,cal_dis,dis_done,incr,comp,write,init,ready, compready,
+count1,count2,count3,count4,count5);
+control_kmeans CU(init,clock,ready,compready,clr,start,ld,cal_dis,dis_done,comp,incr,write);
+endmodule
+
+
+/*******************************************************DATAPATH MODULE****************************************************************/
+module datapath(clock,start,ld,clr,cal_dis,dis_done,incr,comp,write,init,ready, compready,
+count11,count22,count33,count44,count55);
+input clock,start,ld,clr,cal_dis,dis_done,comp;
+input write;
+input [9:0] incr;
+output init,ready, compready;
+output [16:0] count11,count22,count33,count44,count55;
+wire[31:0] file_id1,file_id2,file_id3,file_id4,file_id5,count1,count2,count3,count4,count5;
+wire [31:0] Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,
+Cy5_new,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,Cy4_old,Cy5_old;
+assign count11=count1[31:15];
+assign count22=count2[31:15];
+assign count33=count3[31:15];
+assign count44=count4[31:15];
+assign count55=count5[31:15];
+mid M1(clock,start,ld,Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,
+Cy5_new,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,Cy4_old,Cy5_old);
+
+kmeans_test1 K1(clock,start,ld,clr,cal_dis,dis_done,write,incr,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,
+Cy4_old,Cy5_old,Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new,
+count1,count2,count3,count4,count5,init,ready,
+file_id1,file_id2,file_id3,file_id4,file_id5);
+
+compare C1(comp,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,
+Cy4_old,Cy5_old,file_id1,file_id2,file_id3,file_id4,file_id5,
+Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new,compready);
+
+endmodule
+
+
+module mid (clock,start,ld,Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,
+Cy5_new,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,Cy4_old,Cy5_old);
+input clock,ld,start;
+input [31:0] Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new;
+output reg [31:0]  Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,Cy4_old,Cy5_old;
+
+
+always @(*)
+begin
+if(start)
+begin
+$display("............start set to 1 only once in program.........");
+
+Cx1_old=32'b0_0000000000000000_001100110011001;  //0.2                                  //initial centroids
+Cy1_old=32'b0_0000000000000000_001100110011001;  //0.2
+
+Cx2_old=32'b0_0000000000000000_010110011001100;  //0.35
+Cy2_old=32'b0_0000000000000000_010110011001100;  //0.35
+
+Cx3_old=32'b0_0000000000000000_100000000000000;  //0.5
+Cy3_old=32'b0_0000000000000000_100000000000000;  //0.5
+
+Cx4_old=32'b0_0000000000000000_101001100110011;  //0.65
+Cy4_old=32'b0_0000000000000000_101001100110011;  //0.65
+
+Cx5_old=32'b0_0000000000000000_110011001100110;  //0.8
+Cy5_old=32'b0_0000000000000000_110011001100110;  //0.8
+
+
+end
+if(ld) begin                                                                        //in next iteration recently calculated centroids will we used as an old centroids as reference 
+Cx1_old=Cx1_new;    
+Cx2_old=Cx2_new;
+Cx3_old=Cx3_new;
+Cx4_old=Cx4_new;
+Cx5_old=Cx5_new;
+Cy1_old=Cy1_new;
+Cy2_old=Cy2_new;
+Cy3_old=Cy3_new;
+Cy4_old=Cy4_new;
+Cy5_old=Cy5_new;
+#2;
+end
+end
+endmodule
+
+module kmeans_test1(clock,start,ld,clr,cal_dis,dis_done,write,incr,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,
+Cy4_old,Cy5_old,Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new,
+count1,count2,count3,count4,count5,init,ready,
+file_id1,file_id2,file_id3,file_id4,file_id5);
+input clock,start,ld,clr,cal_dis,dis_done;
+input [9:0] incr;
+input write;
+input [31:0]Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,Cy4_old,Cy5_old;
+output[31:0]Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new,
+count1,count2,count3,count4,count5;
+output reg init=1'b0;
+output reg[31:0] file_id1,file_id2,file_id3,file_id4,file_id5;
+output ready;
+parameter N=1000;                                                               
+parameter k=5;                                                                  // 5 clusters
+reg [31:0] Memory_x [0:N-1];
+reg [31:0] Memory_y [0:N-1];
+reg [14:0] i;
+reg [16:0] register1=17'b0000_0000_0000_0000_0;
+reg [14:0] register2;
+wire[31:0] sum_x_1,sum_x_2,sum_y_1,sum_y_2,count1,count2;
+wire[31:0] sum_x_3,sum_x_4,sum_y_3,sum_y_4,count3,count4,sum_x_5,sum_y_5,count5;
+always @ (posedge clock)
+if(start && init==0)
+    begin
+    init=1'b0;
+for (i=0;i<N;i=i+1)
+begin
+if(i/2==0)                                                                      //logic to generate 1000 random data points
+begin
+register2=i+10107;
+Memory_x[i]={register1,register2[8],(register2[2]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[3]),(register2[14]~^register2[0]),(register2[14]~^register2[10]),(register2[13]^register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+Memory_y[i]= {register1,register2[6],(register2[0]~^register2[13]),(register2[2]^register2[12]),(register2[0]|register2[3]),(register2[6]^register2[7]),
+             (register2[0]^register2[13]),(register2[4]~^register2[0]),(register2[14]~^register2[10]),(register2[13]&register2[9])
+             ,(register2[4]^register2[13]),register2[14:10]};
+end
+else if(i/3==0)
+begin
+register2=i+27750;
+Memory_x[i]={register1,(register2[9]&register2[6]),(register2[6]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[3]),(register2[14]~^register2[0]),(register2[14]~^register2[10]),(register2[13]^register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+Memory_y[i]= {register1,(register2[5]|register2[11]),(register2[6]~^register2[10]),(register2[13]~^register2[12]),(register2[10]|register2[3]),(register2[6]^register2[7]),
+             (register2[0]^register2[13]),(register2[14]~^register2[10]),(register2[14]~^register2[10]),~(register2[3]&register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+end
+else if(i/5==0)
+begin
+register2=i+35007;
+Memory_x[i]={register1,~register2[3],(register2[6]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[3]),(register2[14]~^register2[0]),(register2[14]~^register2[10]),(register2[13]^register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+Memory_y[i]= Memory_x[i]>>1;
+end
+else if(i/7==0)
+begin
+register2=i+40024;
+Memory_x[i]={register1,(register2[2]&register2[8]),(register2[8]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[3]),(register2[14]~^register2[0]),(register2[14]~^register2[10]),(register2[13]^register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+Memory_y[i]= {register1,~(register2[2]|register2[8]),~(register2[8]~^register2[10]),(register2[1]^register2[12]),(register2[0]^register2[13]),(register2[6]^register2[7]),
+             (register2[10]~^register2[3]),(register2[14]~^register2[0]),(register2[4]~^register2[0]),~(register2[13]^register2[9])
+             ,(register2[14]^register2[1]),register2[4:0]};
+end
+else if(i/11==0)
+begin
+register2=i+4085;
+Memory_x[i]={register1,~register2[7],(register2[10]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[3]),(register2[14]~^register2[0]),(register2[14]~^register2[10]),(register2[13]^register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+Memory_y[i]= {register1,register2[7],(register2[1]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[13]),~(register2[6]^register2[7]),
+         (register2[0]~^register2[3]),~(register2[14]~^register2[0]),~(register2[14]|register2[10]),(register2[13]^register2[9])
+             ,(register2[4]&register2[3]),register2[14:10]};
+end
+else
+begin
+register2=i+2123;
+Memory_x[i]={register1,register2[12],(register2[6]~^register2[0]),(register2[1]^register2[12]),(register2[0]^register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[3]),(register2[14]~^register2[0]),(register2[14]~^register2[10]),(register2[13]^register2[9])
+             ,(register2[14]^register2[13]),register2[14:10]};
+Memory_y[i]= {register1,register2[8],(register2[6]~^register2[0]),(register2[11]^register2[12]),~(register2[10]&register2[3]),(register2[6]^register2[7]),
+             (register2[0]~^register2[13]),(register2[14]|register2[0]),(register2[14]~^register2[10]),(register2[13]&register2[9])
+             ,(register2[14]~^register2[3]),register2[14:10]};
+end
+
+$display("point[%2d]=(%f,%f)",i,(Memory_x[i][14]*0.5+Memory_x[i][13]*0.25+Memory_x[i][12]*0.125+Memory_x[i][11]*0.0625+Memory_x[i][10]*0.03125+Memory_x[i][9]*0.015625)
+                               ,(Memory_y[i][14]*0.5+Memory_y[i][13]*0.25+Memory_y[i][12]*0.125+Memory_y[i][11]*0.0625+Memory_y[i][10]*0.03125+Memory_y[i][9]*0.015625));
+end
+
+init=1'b1;                                                                                            //init signal will be set to 1 when 1000 random memory points are generated
+$display("memory points generated and init is set to 1 state change to s1");
+end
+
+Distance d1(cal_dis,Cx1_old,Cy1_old,Cx2_old,Cy2_old,Cx3_old,Cy3_old,Cx4_old,Cy4_old,Cx5_old,Cy5_old,
+Memory_x[incr],Memory_y[incr],clr,file_id1,file_id2,file_id3,file_id4,file_id5,
+count1,count2,count3,count4,count5, 
+sum_x_1,sum_x_2,sum_x_3,sum_x_4,sum_x_5,sum_y_1,sum_y_2,sum_y_3,sum_y_4,sum_y_5);                   //module instantiation for distance calculations
+
+new_centroids c1(dis_done,sum_x_1,sum_y_1,sum_x_2,sum_y_2,
+sum_x_3,sum_y_3,
+sum_x_4,sum_y_4,
+sum_x_5,sum_y_5,count1,count2,count3,count4,count5,clock,file_id1,
+Cx1_new,Cy1_new,Cx2_new,Cy2_new,Cx3_new,Cy3_new,Cx4_new,Cy4_new,Cx5_new,Cy5_new,ready);              //module instantiation for calculating new centroids 
+
+always @(posedge clock)
+if(write)
+begin                     
+file_id1=$fopen("C:\\Users\\Ginni\\OneDrive\\Desktop\\ASS3\\cluster1.txt","w");    //results will be available in 5 respective files at user specified locations
+file_id2=$fopen("C:\\Users\\Ginni\\OneDrive\\Desktop\\ASS3\\cluster2.txt","w");    //cluster 2 file
+file_id3=$fopen("C:\\Users\\Ginni\\OneDrive\\Desktop\\ASS3\\cluster3.txt","w");   //cluster 3 file
+file_id4=$fopen("C:\\Users\\Ginni\\OneDrive\\Desktop\\ASS3\\cluster4.txt","w");   //cluster 4 file
+file_id5=$fopen("C:\\Users\\Ginni\\OneDrive\\Desktop\\ASS3\\cluster5.txt","w");   //cluster 5 file
+end
+endmodule
+
+/*****************************COMPARE MODULE****************************************************************/
+module compare (comp,Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,
+Cy4_old,Cy5_old,file_id1,file_id2,file_id3,file_id4,file_id5,
+Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new,compready);
+input comp;
+
+input [31:0] Cx1_old,Cx2_old,Cx3_old,Cx4_old,Cx5_old,Cy1_old,Cy2_old,Cy3_old,
+Cy4_old,Cy5_old,Cx1_new,Cx2_new,Cx3_new,Cx4_new,Cx5_new,Cy1_new,Cy2_new,Cy3_new,Cy4_new,Cy5_new;
+input [31:0]file_id1,file_id2,file_id3,file_id4,file_id5;
+output reg compready;
+
+integer k=0;
+always @(*)
+if(comp) 
+begin
+compready=1'b0;
+
+
+if((Cx1_new==Cx1_old && Cy1_new==Cy1_old && Cx2_new==Cx2_old && Cy2_new==Cy2_old
+ && Cx3_new==Cx3_old && Cy3_new==Cy3_old && Cx4_new==Cx4_old &&
+  Cy4_new==Cy4_old && Cx5_new==Cx5_old && Cy5_new==Cy5_old))                                 //if consecutive values are same , wehave got our final clusters
+  #5 compready=1'b1;
+$display("\t \t \t Itration Number%2d",k+1'b1);
+k=k+1;                                                                              
+                                                                                  
+$fwrite(file_id1,"(%f,%f) Centroid 1 \n",(Cx1_new[14]*0.5+Cx1_new[13]*0.25+Cx1_new[12]*0.125+Cx1_new[11]*0.0625+Cx1_new[10]*0.03125+Cx1_new[9]*0.015625+Cx1_new[8]*0.0078125+Cx1_new[7]*0.00390625+Cx1_new[6]*0.001953125)
+                  ,(Cy1_new[14]*0.5+Cy1_new[13]*0.25+Cy1_new[12]*0.125+Cy1_new[11]*0.0625+Cy1_new[10]*0.03125+Cy1_new[9]*0.015625+Cy1_new[8]*0.0078125+Cy1_new[7]*0.00390625+Cy1_new[6]*0.001953125));
+
+$fwrite(file_id2,"(%f,%f) Centroid 2 \n",(Cx2_new[14]*0.5+Cx2_new[13]*0.25+Cx2_new[12]*0.125+Cx2_new[11]*0.0625+Cx2_new[10]*0.03125+Cx2_new[9]*0.015625+Cx2_new[8]*0.0078125+Cx2_new[7]*0.00390625+Cx2_new[6]*0.001953125)
+                  ,(Cy2_new[14]*0.5+Cy2_new[13]*0.25+Cy2_new[12]*0.125+Cy2_new[11]*0.0625+Cy2_new[10]*0.03125+Cy2_new[9]*0.015625+Cy2_new[8]*0.0078125+Cy2_new[7]*0.00390625+Cy2_new[6]*0.001953125));
+
+$fwrite(file_id3,"(%f,%f) Centroid 3 \n",(Cx3_new[14]*0.5+Cx3_new[13]*0.25+Cx3_new[12]*0.125+Cx3_new[11]*0.0625+Cx3_new[10]*0.03125+Cx3_new[9]*0.015625+Cx3_new[8]*0.0078125+Cx3_new[7]*0.00390625+Cx3_new[6]*0.001953125)
+                  ,(Cy3_new[14]*0.5+Cy3_new[13]*0.25+Cy3_new[12]*0.125+Cy3_new[11]*0.0625+Cy3_new[10]*0.03125+Cy3_new[9]*0.015625+Cy3_new[8]*0.0078125+Cy3_new[7]*0.00390625+Cy3_new[6]*0.001953125));
+
+$fwrite(file_id4,"(%f,%f) Centroid 4 \n",(Cx4_new[14]*0.5+Cx4_new[13]*0.25+Cx4_new[12]*0.125+Cx4_new[11]*0.0625+Cx4_new[10]*0.03125+Cx4_new[9]*0.015625+Cx4_new[8]*0.0078125+Cx4_new[7]*0.00390625+Cx4_new[6]*0.001953125)
+                  ,(Cy4_new[14]*0.5+Cy4_new[13]*0.25+Cy4_new[12]*0.125+Cy4_new[11]*0.0625+Cy4_new[10]*0.03125+Cy4_new[9]*0.015625+Cy4_new[8]*0.0078125+Cy4_new[7]*0.00390625+Cy4_new[6]*0.001953125));
+
+$fwrite(file_id5,"(%f,%f) Centroid 5 \n",(Cx5_new[14]*0.5+Cx5_new[13]*0.25+Cx5_new[12]*0.125+Cx5_new[11]*0.0625+Cx5_new[10]*0.03125+Cx5_new[9]*0.015625+Cx5_new[8]*0.0078125+Cx5_new[7]*0.00390625+Cx5_new[6]*0.001953125)
+                  ,(Cy5_new[14]*0.5+Cy5_new[13]*0.25+Cy5_new[12]*0.125+Cy5_new[11]*0.0625+Cy5_new[10]*0.03125+Cy5_new[9]*0.015625+Cy5_new[8]*0.0078125+Cy5_new[7]*0.00390625+Cy5_new[6]*0.001953125));
+
+#5;                                
+$fclose(file_id1);                                                                   //close file 1 after end of each iteration
+$fclose(file_id2);                                                                  //close file 2 after end of each iteration
+$fclose(file_id3);                                                                 //close file 3 after end of each iteration
+$fclose(file_id4);                                                                //close file 4 after end of each iteration
+$fclose(file_id5);                                                               //close file 5 after end of each iteration
+$display("Compready %b",compready);
+end
+endmodule
+
+/*****************************CONTROLLER MODULE****************************************************************/
+module control_kmeans(init,clock,ready,compready,clr,start,ld,cal_dis,dis_done,comp,incr,write);
+input clock,ready,init,compready;
+output reg write;
+output reg clr,ld,start,cal_dis,dis_done,comp; 
+output reg [9:0]incr=10'b0;
+reg [2:0] state;                                                          
+parameter s0=3'd0, s1=3'd1, s2=3'd2, s3=3'd3, s4=3'd4, s5=3'd5, s6=3'd6, s7=3'd7,N=10'd999;
+always @(posedge clock)
+case (state)                                                       
+    s0: begin
+         if(init) state<=s1;                                                  //if random points are generated then switch to set 1
+         else state<=s0;                                                     //else wait in same state
+         end    
+    s1:state<=s2;     
+    s2: state<=s3;
+     s3: begin
+        if(incr==N)                                                         //if distance calculation of 1000 data points done,then switch to next state 
+        state<=s4;
+        else state<=s2;                                                    //else repeat the procedure
+        end
+    s4: begin
+           if (ready)state<=s5;                                            // if result of division isready , switch to next state
+          else state<=s4;                                                 //else wait in same state
+       end
+       
+     s5: state<=s6;
+      s6:  begin
+            if(compready)                                                 //if consecutive results are same, final 5 clusters are ready       
+          state<=s6; 
+          else state<=s7;                                                 //else switch to next state
+         end  
+      s7: begin
+              if(compready) state<=s7;
+              else state<=s1;                                            // till consecutive results are same repeat the procedure
+           end                                                                                                    
+   default: state<=s0;
+endcase
+always @(state)
+case (state)
+    s0: begin
+        incr=10'b0;
+        start=1'b1;                                                     //load initial centroid
+         clr=1'b0; ld=1'b0; cal_dis=1'b0; dis_done=0; comp=1'b0;
+          write=1'b0;
+        end
+    s1:begin
+        ld=1'b0;
+        start=1'b0;
+        clr=1'b1;                                                      //before entering into distance and centroid calculations clear previous values
+        incr=10'b0;
+        write=1'b1;
+        end
+     s2: 
+     begin cal_dis=1'b1;                                            //controlsignal to calculate distance
+       clr=1'b0; 
+        write=1'b0;
+       end
+     
+     s3: begin
+        incr= incr+1;                                              //count from 0 to 999 ,1000 data points
+        end
+    s4: begin
+        cal_dis=1'b0;
+        dis_done=1'b1;                                            //control signal to indicate distance calculation done
+        end
+    s5:begin
+        dis_done=1'b0;
+        comp=1'b1; 
+        end
+    s6:
+        begin
+        comp=1'b0; 
+        ld=1'b1;                                                 // control signal to indicate that recently calculated centroids will be used as old centroids as reference in next iteration    
+        dis_done=1'b0;
+        end
+     s7:  begin ld=1'b0;
+        end
+endcase
+endmodule
+
+
+/*************************************************DISTANCE MODULE****************************************************************/
+module Distance #(parameter N = 32)
+(
+input cal,
+input [N-1:0] Cx1,
+input [N-1:0] Cy1,
+input [N-1:0] Cx2,
+input [N-1:0] Cy2,
+input [N-1:0] Cx3,
+input [N-1:0] Cy3,
+input [N-1:0] Cx4,
+input [N-1:0] Cy4,
+input [N-1:0] Cx5,
+input [N-1:0] Cy5,
+input [N-1:0] X,
+input [N-1:0] Y,
+input clr,
+input [31:0] file_id1,
+input [31:0] file_id2,input [31:0] file_id3,input [31:0] file_id4,input [31:0] file_id5,
+output [N-1:0] count1,
+output [N-1:0] count2,
+output [N-1:0] count3,
+output [N-1:0] count4,
+output [N-1:0] count5,
+
+output [N-1:0] sum_x_1,
+output  [N-1:0] sum_x_2,
+output  [N-1:0] sum_x_3,
+output  [N-1:0] sum_x_4,
+output  [N-1:0] sum_x_5,
+output  [N-1:0] sum_y_1,
+output  [N-1:0] sum_y_2,
+output  [N-1:0] sum_y_3,
+output  [N-1:0] sum_y_4,
+output  [N-1:0] sum_y_5,
+output dis_done
+);
+wire [N-1:0] X_negated,Y_negated;
+wire [N-1:0] x1_diff,y1_diff,x2_diff,y2_diff,x3_diff,y3_diff,x4_diff,y4_diff,x5_diff,y5_diff;
+wire [N-1:0] x1_diff_sqr,y1_diff_sqr,x2_diff_sqr,y2_diff_sqr,x3_diff_sqr,y3_diff_sqr,x4_diff_sqr,y4_diff_sqr,x5_diff_sqr,y5_diff_sqr;
+wire [N-1:0] g1,g2,g3,g4,g5;
+wire over1,over2,over3,over4,over5,over6,over7,over8,over9,over10;
+
+assign X_negated={~X[N-1],X[N-2:0]};
+assign Y_negated={~Y[N-1],Y[N-2:0]};
+
+/* (x1-x2) and (y1-y2) with 5 centriods*/
+Fixed_adder FS1(cal,Cx1,X_negated,x1_diff);
+Fixed_adder FS2(cal,Cy1,Y_negated,y1_diff);
+Fixed_adder FS3(cal,Cx2,X_negated,x2_diff);
+Fixed_adder FS4(cal,Cy2,Y_negated,y2_diff);
+Fixed_adder FS5(cal,Cx3,X_negated,x3_diff);
+Fixed_adder FS6(cal,Cy3,Y_negated,y3_diff);
+Fixed_adder FS7(cal,Cx4,X_negated,x4_diff);
+Fixed_adder FS8(cal,Cy4,Y_negated,y4_diff);
+Fixed_adder FS9(cal,Cx5,X_negated,x5_diff);
+Fixed_adder FS10(cal,Cy5,Y_negated,y5_diff);
+
+/*squaring*/
+Fixed_mul FM1(cal,x1_diff,x1_diff,x1_diff_sqr,over1);
+Fixed_mul FM2(cal,y1_diff,y1_diff,y1_diff_sqr,over2);
+Fixed_mul FM3(cal,x2_diff,x2_diff,x2_diff_sqr,over3);
+Fixed_mul FM4(cal,y2_diff,y2_diff,y2_diff_sqr,over4);
+Fixed_mul FM5(cal,x3_diff,x3_diff,x3_diff_sqr,over5);
+Fixed_mul FM6(cal,y3_diff,y3_diff,y3_diff_sqr,over6);
+Fixed_mul FM7(cal,x4_diff,x4_diff,x4_diff_sqr,over7);
+Fixed_mul FM8(cal,y4_diff,y4_diff,y4_diff_sqr,over8);
+Fixed_mul FM9(cal,x5_diff,x5_diff,x5_diff_sqr,over9);
+Fixed_mul FM10(cal,y5_diff,y5_diff,y5_diff_sqr,over10);
+
+/*adding squares*/
+Fixed_adder FA1(cal,x1_diff_sqr,y1_diff_sqr,g1);
+Fixed_adder FA2(cal,x2_diff_sqr,y2_diff_sqr,g2);
+Fixed_adder FA3(cal,x3_diff_sqr,y3_diff_sqr,g3);
+Fixed_adder FA4(cal,x4_diff_sqr,y4_diff_sqr,g4);
+Fixed_adder FA5(cal,x5_diff_sqr,y5_diff_sqr,g5);
+
+compare_module cmp(cal,X,Y,g1,g2,g3,g4,g5,clr,file_id1,file_id2,file_id3,file_id4,file_id5,
+count1,count2,count3,count4,count5, sum_x_1,sum_x_2,sum_x_3,sum_x_4,sum_x_5,sum_y_1,sum_y_2, sum_y_3,sum_y_4,sum_y_5,dis_done);
+
+endmodule
+
+
+
+/**************************************************5 CLUSTER CLASIFICATION****************************************************************/
+module compare_module #(parameter N=32)
+(
+input cal,
+input [N-1:0] x,
+input [N-1:0] y,
+input [N-1:0] D1,
+input [N-1:0] D2,
+input [N-1:0] D3,
+input [N-1:0] D4,
+input [N-1:0] D5,
+input clr,
+input [31:0]file_id1,
+input [31:0]file_id2,input [31:0]file_id3,input [31:0]file_id4,input [31:0]file_id5,
+output reg [N-1:0] c1,
+output reg [N-1:0] c2,
+output reg [N-1:0] c3,
+output reg [N-1:0] c4,
+output reg [N-1:0] c5,
+
+output reg [N-1:0] sum_x_1,
+output reg [N-1:0] sum_x_2,
+output reg [N-1:0] sum_x_3,
+output reg [N-1:0] sum_x_4,
+output reg [N-1:0] sum_x_5,
+output reg [N-1:0] sum_y_1,
+output reg [N-1:0] sum_y_2,
+output reg [N-1:0] sum_y_3,
+output reg [N-1:0] sum_y_4,
+output reg [N-1:0] sum_y_5,
+output reg dis_done
+);
+
+always@(*)
+
+begin
+if(clr)
+begin
+c1=0;
+c2=0;
+c3=0;
+c4=0;
+c5=0;
+
+sum_x_1=0;
+sum_x_2=0;
+sum_x_3=0;
+sum_x_4=0;
+sum_x_5=0;
+
+sum_y_1=0;
+sum_y_2=0;
+sum_y_3=0;
+sum_y_4=0;
+sum_y_5=0;
+end
+dis_done=1'b0;
+ 
+ if (cal)
+ begin
+#7; 
+ if(D1<D2 & D1<D3 & D1<D4 & D1<D5)
+  begin
+   sum_x_1=sum_x_1+x;
+   sum_y_1=sum_y_1+y;
+   c1=c1+32'h00008000;
+
+$fwrite(file_id1,"(%f,%f) \n",(x[14]*0.5+x[13]*0.25+x[12]*0.125+x[11]*0.0625+x[10]*0.03125+x[9]*0.015625+x[8]*0.0078125+x[7]*0.00390625+x[6]*0.001953125)
+                  ,(y[14]*0.5+y[13]*0.25+y[12]*0.125+y[11]*0.0625+y[10]*0.03125+y[9]*0.015625+y[8]*0.0078125+y[7]*0.00390625+y[6]*0.001953125));
+  end
+
+ else if(D2<D3 & D2<D4 & D2<D5 & D2<D1)
+  begin
+   sum_x_2=sum_x_2+x;
+   sum_y_2=sum_y_2+y;
+   c2=c2+32'h00008000;
+
+  $fwrite(file_id2,"(%f,%f) \n",(x[14]*0.5+x[13]*0.25+x[12]*0.125+x[11]*0.0625+x[10]*0.03125+x[9]*0.015625+x[8]*0.0078125+x[7]*0.00390625+x[6]*0.001953125)
+                  ,(y[14]*0.5+y[13]*0.25+y[12]*0.125+y[11]*0.0625+y[10]*0.03125+y[9]*0.015625+y[8]*0.0078125+y[7]*0.00390625+y[6]*0.001953125));
+  end
+  
+ else if(D3<D4 & D3<D5 & D3<D1 & D3<D2)
+  begin
+   sum_x_3=sum_x_3+x;
+   sum_y_3=sum_y_3+y;
+   c3=c3+32'h00008000;
+
+ $fwrite(file_id3,"(%f,%f) \n",(x[14]*0.5+x[13]*0.25+x[12]*0.125+x[11]*0.0625+x[10]*0.03125+x[9]*0.015625+x[8]*0.0078125+x[7]*0.00390625+x[6]*0.001953125)
+                  ,(y[14]*0.5+y[13]*0.25+y[12]*0.125+y[11]*0.0625+y[10]*0.03125+y[9]*0.015625+y[8]*0.0078125+y[7]*0.00390625+y[6]*0.001953125));
+  end
+
+ else if(D4<D5 & D4<D1 & D4<D3 & D4<D2)
+  begin
+   sum_x_4=sum_x_4+x;
+   sum_y_4=sum_y_4+y;
+   c4=c4+32'h00008000;
+ 
+   $fwrite(file_id4,"(%f,%f) \n",(x[14]*0.5+x[13]*0.25+x[12]*0.125+x[11]*0.0625+x[10]*0.03125+x[9]*0.015625+x[8]*0.0078125+x[7]*0.00390625+x[6]*0.001953125)
+                  ,(y[14]*0.5+y[13]*0.25+y[12]*0.125+y[11]*0.0625+y[10]*0.03125+y[9]*0.015625+y[8]*0.0078125+y[7]*0.00390625+y[6]*0.001953125));
+  end
+
+
+ else if(D5<D1 & D5<D2 & D5<D3 & D5<D4)
+  begin
+    sum_x_5=sum_x_5+x;
+   sum_y_5=sum_y_5+y;
+   c5=c5+32'h00008000;
+   
+   $fwrite(file_id5,"(%f,%f) \n",(x[14]*0.5+x[13]*0.25+x[12]*0.125+x[11]*0.0625+x[10]*0.03125+x[9]*0.015625+x[8]*0.0078125+x[7]*0.00390625+x[6]*0.001953125)
+                  ,(y[14]*0.5+y[13]*0.25+y[12]*0.125+y[11]*0.0625+y[10]*0.03125+y[9]*0.015625+y[8]*0.0078125+y[7]*0.00390625+y[6]*0.001953125));
+  end
+ dis_done=1'b1;
+
+end
+end
+endmodule
+
+/************************************************************NEW CENTROIDS CALCULATION****************************************************************/
+
+module new_centroids
+#(
+	//Parameterized values
+	parameter N = 32
+    )
+    (
+    input dis_done,
+    input 	[N-1:0] CX1_old,
+    input 	[N-1:0] CY1_old,
+    input 	[N-1:0] CX2_old,
+    input 	[N-1:0] CY2_old,
+    input 	[N-1:0] CX3_old,
+    input 	[N-1:0] CY3_old,
+    input 	[N-1:0] CX4_old,
+    input 	[N-1:0] CY4_old,
+    input 	[N-1:0] CX5_old,
+    input 	[N-1:0] CY5_old,
+    
+    input 	[N-1:0] Count1,
+    input 	[N-1:0] Count2,
+    input 	[N-1:0] Count3,
+    input 	[N-1:0] Count4,
+    input 	[N-1:0] Count5,
+    
+    input clock,
+    input [31:0] file_id1,
+    
+    output 	[N-1:0] CX1_new,
+    output 	[N-1:0] CY1_new,
+    output 	[N-1:0] CX2_new,
+    output 	[N-1:0] CY2_new,
+    output 	[N-1:0] CX3_new,
+    output 	[N-1:0] CY3_new,
+    output 	[N-1:0] CX4_new,
+    output 	[N-1:0] CY4_new,
+    output 	[N-1:0] CX5_new,
+    output 	[N-1:0] CY5_new,
+    output ready
+    );
+    wire start;
+   wire completed;
+    wire overflow;
+   
+    assign start=1'b1;
+    
+    Fixed_div FD1(dis_done,CX1_old,Count1,clock,CX1_new,ready);
+    Fixed_div FD2(dis_done,CY1_old,Count1,clock,CY1_new,ready);
+    
+    Fixed_div FD3(dis_done,CX2_old,Count2,clock,CX2_new,ready);
+    Fixed_div FD4(dis_done,CY2_old,Count2,clock,CY2_new,ready);
+    
+    Fixed_div FD5(dis_done,CX3_old,Count3,clock,CX3_new,ready);
+    Fixed_div FD6(dis_done,CY3_old,Count3,clock,CY3_new,ready);
+    
+    Fixed_div FD7(dis_done,CX4_old,Count4,clock,CX4_new,ready);
+    Fixed_div FD8(dis_done,CY4_old,Count4,clock,CY4_new,ready);
+    
+    Fixed_div FD9(dis_done,CX5_old,Count5,clock,CX5_new,ready);
+    Fixed_div FD10(dis_done,CY5_old,Count5,clock,CY5_new,ready);
+    
+    always @(dis_done)
+    begin
+    $display("Count1 %d",Count1[31:15]);
+    $display("Count2 %d",Count2[31:15]);
+    $display("Count3 %d",Count3[31:15]);
+    $display("Count4 %d",Count4[31:15]);
+    $display("Count5 %d",Count5[31:15]);
+    end
+  
+endmodule
+
+/*********************************************************FIXED POINT DIVISION***************************************************************/
+module Fixed_div#(
+	//Parameterized values
+	parameter Q = 15,
+	parameter N = 32
+	)
+	(
+	input dis_done,
+	input 	[N-1:0] i_dividend,
+	input 	[N-1:0] i_divisor,
+	input 	i_clk,
+	output 	reg [N-1:0] o_quotient_out,
+	output 	reg ready
+	);
+	
+	reg [2*N+Q-3:0]	reg_working_quotient;	
+	reg [N-1:0] 		reg_quotient;				
+	reg [N-2+Q:0] 		reg_working_dividend;	
+	reg [2*N+Q-3:0]	reg_working_divisor;		
+	integer 		reg_count; 		
+	reg					reg_done;			
+	reg					reg_sign;			
+	
+	always @( i_clk)
+	if(dis_done)
+	begin
+	reg_working_quotient = 0;									//	Clear out the quotient register
+	reg_working_dividend = 0;									//	Clear out the dividend register 
+	reg_working_divisor = 0;
+	reg_working_dividend[N+Q-2:Q] = i_dividend[N-2:0];				//	Left-align the dividend in its working register
+	reg_working_divisor[2*N+Q-3:N+Q-1] = i_divisor[N-2:0];
+	for (reg_count=N+Q-2;reg_count>=0;reg_count=reg_count-1)
+	begin
+		reg_working_divisor = reg_working_divisor >> 1;
+	    if(reg_working_dividend >= reg_working_divisor) 
+	            begin
+				reg_working_quotient[reg_count] = 1'b1;										//	Set the quotient bit
+				reg_working_dividend = reg_working_dividend - reg_working_divisor;	//		and subtract the divisor from the dividend
+				end
+	end
+	reg_quotient = reg_working_quotient;
+    ready =1'b1;
+//		  if(ready)
+//		    $display("Result div from divider %d.%b",o_quotient_out[31:15],o_quotient_out[14:0]);
+
+     o_quotient_out[N-2:0] = reg_quotient[N-2:0];
+	 o_quotient_out[N-1] = 1'b0;
+end
+endmodule
+
+/***************************************************************FIXED POINT MULTIPLICATION CALCULATION****************************************************************/
+module Fixed_mul #(
+	//Parameterized values
+	parameter Q = 15,
+	parameter N = 32
+	)
+	(
+	input cal,
+	 input			[N-1:0]	i_multiplicand,
+	 input			[N-1:0]	i_multiplier,
+	 output			[N-1:0]	o_result,
+	 output	reg				ovr
+	 );
+	 
+	 //	The underlying assumption, here, is that both fixed-point values are of the same length (N,Q)
+	 //		Because of this, the results will be of length N+N = 2N bits....
+	 //		This also simplifies the hand-back of results, as the binimal point 
+	 //		will always be in the same location...
+	
+	reg [2*N-1:0]	r_result;		//	Multiplication by 2 values of N bits requires a 
+											//		register that is N+N = 2N deep...
+	reg [N-1:0]		r_RetVal;
+	
+//--------------------------------------------------------------------------------
+	assign o_result = r_RetVal;	//	Only handing back the same number of bits as we received...// rretval before
+											//		with fixed point in same location...
+	
+//---------------------------------------------------------------------------------
+	always @(i_multiplicand, i_multiplier)
+	if(cal)	begin		
+	   #2				//	Do the multiply any time the inputs change
+		r_result <= i_multiplicand[N-2:0] * i_multiplier[N-2:0];	//	Removing the sign bits from the multiply - that 
+																					//		would introduce *big* errors	
+		ovr <= 1'b0;															//	reset overflow flag to zero
+		end
+	
+		//	This always block will throw a warning, as it uses a & b, but only acts on changes in result...
+	always @(r_result) begin													//	Any time the result changes, we need to recompute the sign bit,
+		r_RetVal[N-1] <= i_multiplicand[N-1] ^ i_multiplier[N-1];	//		which is the XOR of the input sign bits...  (you do the truth table...)
+		r_RetVal[N-2:0] <= r_result[N-2+Q:Q];								//	And we also need to push the proper N bits of result up to 
+																						//		the calling entity...
+		if (r_result[2*N-2:N-1+Q] > 0)										// And finally, we need to check for an overflow
+			ovr <= 1'b1;
+		end
+endmodule
+
+
+/****************************************************************FIXED POINT ADDER CALCULATION****************************************************************/
+module Fixed_adder #(
+	//Parameterized values
+	parameter Q = 15,
+	parameter N = 32
+	)
+	(
+	input cal,
+    input [N-1:0] a,
+    input [N-1:0] b,
+    output [N-1:0] c
+    );
+
+reg [N-1:0] res;
+
+assign c = res;
+
+always @(*)
+        if(cal) begin
+	// both negative or both positive
+	
+	if(a[N-1] == b[N-1]) begin						//	Since they have the same sign, absolute magnitude increases
+		res[N-2:0] = a[N-2:0] + b[N-2:0];		//		So we just add the two numbers
+		res[N-1] = a[N-1];							//		and set the sign appropriately...  Doesn't matter which one we use, 
+															//		they both have the same sign
+															//	Do the sign last, on the off-chance there was an overflow...  
+		end												//		Not doing any error checking on this...
+	//	one of them is negative...
+	else if(a[N-1] == 0 && b[N-1] == 1) begin		//	subtract a-b
+		if( a[N-2:0] > b[N-2:0] ) begin					//	if a is greater than b,
+			res[N-2:0] = a[N-2:0] - b[N-2:0];			//		then just subtract b from a
+			res[N-1] = 0;										//		and manually set the sign to positive
+			end
+		else begin												//	if a is less than b,
+			res[N-2:0] = b[N-2:0] - a[N-2:0];			//		we'll actually subtract a from b to avoid a 2's complement answer
+			if (res[N-2:0] == 0)
+				res[N-1] = 0;										//		I don't like negative zero....
+			else
+				res[N-1] = 1;										//		and manually set the sign to negative
+			end
+		end
+	else begin												//	subtract b-a (a negative, b positive)
+		if( a[N-2:0] > b[N-2:0] ) begin					//	if a is greater than b,
+			res[N-2:0] = a[N-2:0] - b[N-2:0];			//		we'll actually subtract b from a to avoid a 2's complement answer
+			if (res[N-2:0] == 0)
+				res[N-1] = 0;										//		I don't like negative zero....
+			else
+				res[N-1] = 1;										//		and manually set the sign to negative
+			end
+		else begin												//	if a is less than b,
+			res[N-2:0] = b[N-2:0] - a[N-2:0];			//		then just subtract a from b
+			res[N-1] = 0;										//		and manually set the sign to positive
+			end
+		end
+	end
+endmodule
